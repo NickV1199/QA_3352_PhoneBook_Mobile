@@ -1,0 +1,39 @@
+package tests;
+
+import config.AppiumConfig;
+import models.User;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+import screens.AuthentificationScreen;
+import screens.ContactListScreen;
+
+public class DeleteContactTests extends AppiumConfig {
+
+    @BeforeClass
+    public void preCondition() {
+        new AuthentificationScreen(driver)
+                .fillLoginRegistrationForm(User.builder()
+                        .email("flower@gmail.com")
+                        .password("Flower123!")
+                        .build())
+                .submitLogin()
+                .isActivityTitleDisplayed("Contact list");
+
+
+    }
+
+    @Test
+    public void deleteFirstContact() {
+        new ContactListScreen(driver)
+                .deleteFirstContact()
+                .isListSizeLessOnOne();
+    }
+
+
+
+
+}
+
+
+
+

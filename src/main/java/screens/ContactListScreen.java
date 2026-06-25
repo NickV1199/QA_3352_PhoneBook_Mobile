@@ -1,15 +1,16 @@
 package screens;
 
-import io.appium.java_client.TouchAction;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.pagefactory.AndroidFindBy;
-import io.appium.java_client.touch.offset.PointOption;
 import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Pause;
 import org.openqa.selenium.interactions.PointerInput;
 import org.openqa.selenium.interactions.Sequence;
 import org.testng.Assert;
 
+import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 
 public class ContactListScreen extends BaseScreen {
@@ -38,6 +39,9 @@ public class ContactListScreen extends BaseScreen {
 
     @AndroidFindBy(id = "android:id/button1")
     WebElement yesBtn;
+
+    @AndroidFindBy(id = "com.sheygam.contactapp:id/emptyTxt")
+    WebElement noContactsHereView;
 
     int countBefore;
     int countAfter;
@@ -88,17 +92,15 @@ public class ContactListScreen extends BaseScreen {
 
     public ContactListScreen deleteFirstContact() {
         isActivityTitleDisplayed("Contact list");
-
-        //countBefore
         countBefore = contactList.size();
         System.out.println(countBefore);
 
-
         WebElement first = contactList.get(0);
+
         Rectangle rectangle = first.getRect();
         int xFrom = rectangle.getX() + rectangle.getWidth() / 8;
-        //int xTo = rectangle.getX() + (rectangle.getWidth() / 8) * 7;
-        int xTo = rectangle.getWidth()-xFrom;
+        // int xTo = rectangle.getX()+(rectangle.getWidth()/8)*7;
+        int xTo = rectangle.getWidth() - xFrom;
         int y = rectangle.getY() + rectangle.getHeight() / 2;
 
 //        TouchAction<?> touchAction = new TouchAction<>(driver);
@@ -107,10 +109,14 @@ public class ContactListScreen extends BaseScreen {
 
         PointerInput finger = new PointerInput(PointerInput.Kind.TOUCH, "finger");
         Sequence swipe = new Sequence(finger, 1);
-        
 
+        swipe.addAction(finger.createPointerMove(Duration.ZERO, PointerInput.Origin.viewport(), xFrom, y));
+        swipe.addAction(finger.createPointerDown(PointerInput.MouseButton.LEFT.asArg()));
+        swipe.addAction(new Pause(finger, Duration.ofMillis(1000)));
+        swipe.addAction(finger.createPointerMove(Duration.ofMillis(600), PointerInput.Origin.viewport(), xTo, y));
+        swipe.addAction(finger.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
 
-        //countAfter
+        driver.perform(Collections.singletonList(swipe));
 
         should(yesBtn, 8);
         yesBtn.click();
@@ -121,11 +127,24 @@ public class ContactListScreen extends BaseScreen {
         return this;
     }
 
-    public ContactListScreen isListSizeLessOnOne(){
-        Assert.assertEquals(countBefore-countAfter, 1);
+    public ContactListScreen isListSizeLessOnOne() {
+        Assert.assertEquals(countBefore - countAfter, 1);
+        return this;
+    }
 
+    public ContactListScreen removeAllContacts() {
+        pause(1000);
+        while (contactList.size() > 0) {
+            deleteFirstContact();
+        }
+        return this;
+    }
+
+    public ContactListScreen isNoContactsHere() {
+        isShouldHave(noContactsHereView, "No Contacts. Add One more!", 10);
 
         return this;
     }
+
 
 }
